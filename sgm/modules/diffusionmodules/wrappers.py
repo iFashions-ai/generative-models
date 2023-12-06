@@ -1,3 +1,4 @@
+from typing import Callable
 import torch
 import torch.nn as nn
 from packaging import version
@@ -16,8 +17,19 @@ class IdentityWrapper(nn.Module):
         )
         self.diffusion_model = compile(diffusion_model)
 
+        self.patches = {
+            "input_block": []
+        }
+
+
     def forward(self, *args, **kwargs):
-        return self.diffusion_model(*args, **kwargs)
+        return self.diffusion_model(*args, patches=self.patches, **kwargs)
+
+    def add_patch(self, fn: Callable[[torch.Tensor, int], torch.Tensor], name):
+        if name not in self.patches:
+            raise ValueError(f"Unknown patch name {name}")
+        self.patches[name].append(fn)
+
 
 
 class OpenAIWrapper(IdentityWrapper):
@@ -30,5 +42,6 @@ class OpenAIWrapper(IdentityWrapper):
             timesteps=t,
             context=c.get("crossattn", None),
             y=c.get("vector", None),
+            patches=self.patches,
             **kwargs,
         )

@@ -988,9 +988,12 @@ class UNetModel(nn.Module):
             emb = emb + self.label_emb(y)
 
         # h = x.type(self.dtype)
+        patches = kwargs.get("patches", {})
         h = x
-        for module in self.input_blocks:
+        for idx, module in enumerate(self.input_blocks):
             h = module(h, emb, context)
+            for patch_fn in patches["input_block"]:
+                h = patch_fn(h, idx)
             hs.append(h)
         h = self.middle_block(h, emb, context)
         for module in self.output_blocks:

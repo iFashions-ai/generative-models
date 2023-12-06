@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import pytorch_lightning as pl
 import torch
@@ -81,6 +81,20 @@ class DiffusionEngine(pl.LightningModule):
 
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path)
+
+    def clone(self):
+        import copy
+        m = copy.copy(self)
+        m._modules = copy.copy(self._modules)
+        m._modules["model"] = copy.copy(self.model)
+        m.model.patches = {
+            k: copy.copy(v) for k, v in self.model.patches.items()
+        }
+        return m
+
+    def add_patch(self, fn: Callable[[torch.Tensor, int], torch.Tensor], name):
+        self.model.add_patch(fn, name)
+        return self
 
     def init_from_ckpt(
         self,

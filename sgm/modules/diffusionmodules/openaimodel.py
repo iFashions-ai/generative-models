@@ -1,7 +1,8 @@
 import math
 from abc import abstractmethod
 from functools import partial
-from typing import Iterable
+from typing import Callable, Dict, Iterable
+from collections import OrderedDict
 
 import numpy as np
 import torch as th
@@ -988,11 +989,11 @@ class UNetModel(nn.Module):
             emb = emb + self.label_emb(y)
 
         # h = x.type(self.dtype)
-        patches = kwargs.get("patches", {})
+        patches: Dict[str, OrderedDict[str, Callable]] = kwargs.get("patches", {})
         h = x
         for idx, module in enumerate(self.input_blocks):
             h = module(h, emb, context)
-            for patch_fn in patches["input_block"]:
+            for patch_fn in patches["input_block"].values():
                 h = patch_fn(h, idx)
             hs.append(h)
         h = self.middle_block(h, emb, context)

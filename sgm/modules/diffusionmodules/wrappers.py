@@ -1,10 +1,10 @@
-from typing import Callable
+from typing import Callable, Dict
 import torch
 import torch.nn as nn
 from packaging import version
+from collections import OrderedDict
 
 OPENAIUNETWRAPPER = "sgm.modules.diffusionmodules.wrappers.OpenAIWrapper"
-
 
 class IdentityWrapper(nn.Module):
     def __init__(self, diffusion_model, compile_model: bool = False):
@@ -17,18 +17,18 @@ class IdentityWrapper(nn.Module):
         )
         self.diffusion_model = compile(diffusion_model)
 
-        self.patches = {
-            "input_block": []
+        self.patches: Dict[str, OrderedDict[str, Callable]] = {
+            "input_block": OrderedDict()
         }
 
 
     def forward(self, *args, **kwargs):
         return self.diffusion_model(*args, patches=self.patches, **kwargs)
 
-    def add_patch(self, fn: Callable[[torch.Tensor, int], torch.Tensor], name):
-        if name not in self.patches:
-            raise ValueError(f"Unknown patch name {name}")
-        self.patches[name].append(fn)
+    def add_patch(self, fn: Callable[[torch.Tensor, int], torch.Tensor], patch_location: str, patch_name: str):
+        if patch_location not in self.patches:
+            raise ValueError(f"Unknown patch location {patch_location}")
+        self.patches[patch_location][patch_name] = fn
 
 
 

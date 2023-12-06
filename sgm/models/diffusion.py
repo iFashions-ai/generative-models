@@ -104,8 +104,8 @@ class DiffusionEngine(pl.LightningModule):
             return self
         return self.clone().copy_patches(other)
 
-    def add_patch(self, fn: Callable[[torch.Tensor, int], torch.Tensor], name):
-        self.model.add_patch(fn, name)
+    def add_patch(self, fn: Callable[[torch.Tensor, int], torch.Tensor], patch_location: str, patch_name: str):
+        self.model.add_patch(fn, patch_location, patch_name)
         return self
 
     def init_from_ckpt(

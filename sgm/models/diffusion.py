@@ -92,6 +92,18 @@ class DiffusionEngine(pl.LightningModule):
         }
         return m
 
+    def copy_patches(self, other):
+        import copy
+        self.model.patches.update({
+            k: copy.copy(v) for k, v in other.model.patches.items()
+        })
+        return self
+
+    def clone_with_patches(self, other):
+        if self is other:
+            return self
+        return self.clone().copy_patches(other)
+
     def add_patch(self, fn: Callable[[torch.Tensor, int], torch.Tensor], name):
         self.model.add_patch(fn, name)
         return self

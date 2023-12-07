@@ -993,7 +993,7 @@ class UNetModel(nn.Module):
         h = x
         for idx, module in enumerate(self.input_blocks):
             h = module(h, emb, context)
-            for patch_fn in patches["input_block"].values():
+            for patch_fn in patches.get("input_block", {}).values():
                 h = patch_fn(h, idx)
             hs.append(h)
         h = self.middle_block(h, emb, context)
